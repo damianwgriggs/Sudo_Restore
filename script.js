@@ -1,5 +1,5 @@
-/* sudo_restore | Final Build
-   Includes: Entropy Engine, File System, Parser, and Puzzle Logic
+/* sudo_restore | v2.0 Dynamic Entropy
+   Now with Randomized Puzzle Solutions on every refresh
 */
 
 // --- DOM ELEMENTS ---
@@ -12,23 +12,36 @@ let currentPath = [];
 let commandHistory = [];
 let historyIndex = -1;
 
-// --- ENTROPY ENGINE ---
+// --- ENTROPY ENGINE (The RNG) ---
+// 1. Generate random hex string (for Session ID)
 function generateEntropy(length = 8) {
     const array = new Uint8Array(length);
     window.crypto.getRandomValues(array);
     return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('').substring(0, length);
 }
 
+// 2. Pick a random item from an array (for Keywords)
+function pickRandom(array) {
+    const uint32 = new Uint32Array(1);
+    window.crypto.getRandomValues(uint32);
+    // Use modulo to pick an index
+    return array[uint32[0] % array.length];
+}
+
+// --- RANDOMIZED VARIABLES ---
+// These change every time you refresh the page
 const sessionID = generateEntropy(6).toUpperCase();
 
-// --- THE NARRATIVE (FILE SYSTEM) ---
-/* PUZZLE FLOW:
-   1. Read READ_ME_FIRST.txt -> Learn about corruption.
-   2. Read emails/draft.txt -> Find key "1985".
-   3. restore logs/damage_report.txt 1985 -> Reveals key "AETHER".
-   4. restore secure/chimera_protocol.enc AETHER -> WIN.
-*/
+// Puzzle 1: The Year (1980 - 1999)
+const years = ["1982", "1984", "1988", "1990", "1995", "1999", "2001"];
+const targetYear = pickRandom(years);
 
+// Puzzle 2: The Codename
+const codenames = ["OMEGA", "HELIOS", "ZENITH", "VORTEX", "CHRONOS", "AETHER", "PHANTOM"];
+const targetCodename = pickRandom(codenames);
+
+// --- DYNAMIC FILE SYSTEM ---
+// We build this AFTER variables are picked so the content matches the keys
 const fileSystem = {
     "READ_ME_FIRST.txt": {
         type: "file",
@@ -39,7 +52,7 @@ const fileSystem = {
         children: {
             "draft.txt": { 
                 type: "file", 
-                content: "To: Dr. Vance\nFrom: sys_admin\n\nI reset the password for the damage report. It's just your birth year, causing you started the company then. \n\n(Note: You told me it was 1985)." 
+                content: `To: Dr. Vance\nFrom: sys_admin\n\nI reset the password for the damage report. It's just your birth year, causing you started the company then. \n\n(Note: You told me it was ${targetYear}).` 
             },
             "spam.txt": { 
                 type: "file", 
@@ -54,8 +67,8 @@ const fileSystem = {
             "damage_report.txt": { 
                 type: "file", 
                 corrupted: true,
-                key: "1985",
-                content: "DAMAGE ASSESSMENT:\n\nThe master key for the secure sector is 'AETHER'.\nRepeat: The key is AETHER.\n\nUse this to unlock the Chimera Protocol."
+                key: targetYear, // Dynamic Key
+                content: `DAMAGE ASSESSMENT:\n\nThe master key for the secure sector is '${targetCodename}'.\nRepeat: The key is ${targetCodename}.\n\nUse this to unlock the Chimera Protocol.`
             }
         }
     },
@@ -65,14 +78,14 @@ const fileSystem = {
             "chimera_protocol.enc": { 
                 type: "file",
                 corrupted: true,
-                key: "AETHER",
-                content: "PROJECT CHIMERA RESTORED.\n\nEntity Containment: ACTIVE\nSystem Stability: 100%\n\nCongratulations, Specialist.\nYou have saved the system."
+                key: targetCodename, // Dynamic Key
+                content: `PROJECT CHIMERA RESTORED.\n\nSession ID: ${sessionID}\nTarget: ${targetCodename}\n\nCongratulations, Specialist.\nYou have saved the system.`
             }
         }
     }
 };
 
-// --- CORE FUNCTIONS ---
+// --- CORE FUNCTIONS (Unchanged from v1) ---
 
 function getCurrentDir() {
     let current = fileSystem;
@@ -86,7 +99,6 @@ function getCurrentDir() {
     return current;
 }
 
-// Visual FX Trigger
 function triggerGlitch() {
     terminalContainer.classList.add('glitch-active');
     setTimeout(() => terminalContainer.classList.remove('glitch-active'), 500);
@@ -97,7 +109,6 @@ function triggerSuccess() {
     setTimeout(() => terminalContainer.classList.remove('restore-success'), 500);
 }
 
-// Text Garbler (for corrupted files)
 function garbleText(text) {
     const chars = '!@#$%^&*()_+-=[]{}|;:,.<>?/~';
     return text.split('').map(char => {
@@ -119,7 +130,6 @@ function print(text, className = '') {
 function processCommand(input) {
     if (!input) return;
     
-    // Split by spaces, but respect user input
     const parts = input.trim().split(/\s+/);
     const command = parts[0].toLowerCase();
     const args = parts.slice(1);
@@ -144,7 +154,6 @@ function processCommand(input) {
             const dir = getCurrentDir();
             const items = currentPath.length === 0 ? fileSystem : dir;
             let output = '';
-            // Handle different structure at root vs children
             const targetObj = (items.children) ? items.children : items;
 
             for (const key in targetObj) {
@@ -219,7 +228,6 @@ function processCommand(input) {
                     triggerSuccess();
                     print(`Decrypting ${fName}... SUCCESS.`);
                     print(`Data restored.`);
-                    // Auto-read the file upon success
                     setTimeout(() => print(targetFile.content), 600);
                 } else {
                     triggerGlitch();
@@ -239,7 +247,7 @@ function getPathString() {
     return currentPath.length === 0 ? "~" : "~/" + currentPath.join("/");
 }
 
-// --- INIT & LISTENERS ---
+// --- INIT ---
 
 inputField.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
@@ -251,7 +259,6 @@ inputField.addEventListener('keydown', (e) => {
     }
 });
 
-// Auto-focus logic
 document.addEventListener('click', () => inputField.focus());
 
 window.onload = () => {
