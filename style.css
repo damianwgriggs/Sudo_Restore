@@ -1,0 +1,111 @@
+/* CSS Reset & Variables */
+:root {
+    --bg-color: #050505;       /* Deep Black */
+    --term-color: #00ff41;     /* Classic Phosphor Green */
+    --term-glow: #008f11;      /* Darker Green for glow */
+    --color-alert: #ffb000;    /* Amber for warnings/errors */
+    --font-stack: 'Courier New', Courier, monospace;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--term-color);
+    font-family: var(--font-stack);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Prevents scrollbars on main body */
+}
+
+/* Screen Reader Only Utility */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+/* The Terminal Window */
+#terminal-container {
+    width: 90%;
+    max-width: 900px;
+    height: 80vh;
+    padding: 20px;
+    border: 2px solid var(--term-glow);
+    box-shadow: 0 0 20px var(--term-glow); /* Outer CRT Glow */
+    background-color: rgba(0, 20, 0, 0.9);
+    overflow-y: auto; /* Allows scrolling within the terminal */
+    position: relative;
+}
+
+/* Text Styling & Inner Glow */
+.line, .prompt, input {
+    font-size: 1.1rem;
+    line-height: 1.5;
+    text-shadow: 0 0 5px var(--term-glow); /* Text Phosphor Glow */
+}
+
+/* The Input Area */
+.input-line {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.prompt {
+    margin-right: 10px;
+    color: var(--term-color);
+    white-space: nowrap;
+}
+
+input#command-input {
+    background: transparent;
+    border: none;
+    color: var(--term-color);
+    flex-grow: 1;
+    outline: none;
+    font-family: var(--font-stack);
+    caret-color: var(--term-color); /* Cursor matches text color */
+}
+
+/* Optional: CRT Scanline Effect Overlay */
+.scanline {
+    width: 100%;
+    height: 100px;
+    z-index: 10;
+    background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(32, 128, 32, 0.1) 50%, rgba(0,0,0,0) 100%);
+    opacity: 0.1;
+    background-size: 100% 4px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none; /* Click through to input */
+    animation: scanline 10s linear infinite;
+}
+
+@keyframes scanline {
+    0% { top: -100%; }
+    100% { top: 100%; }
+}
+
+/* Scrollbar Customization for Webkit */
+::-webkit-scrollbar {
+    width: 10px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-color);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--term-glow);
+}
