@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sudo_restore | Terminal Uplink</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <main id="terminal-container" role="main">
+        
+        <div class="scanline"></div>
+
+        <div id="terminal-output" role="log" aria-live="polite">
+            <div class="line">System initialized...</div>
+            <div class="line">Entropy engine: <span style="color:var(--color-alert)">OFFLINE</span></div>
+            <div class="line">Mounting file system...</div>
+            <br>
+        </div>
+
+        <div class="input-line">
+            <span class="prompt" aria-hidden="true">visitor@remote:~$</span>
+            <label for="command-input" class="sr-only">Enter Command</label>
+            <input type="text" id="command-input" autocomplete="off" spellcheck="false" autofocus>
+        </div>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
